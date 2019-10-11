@@ -1,0 +1,32 @@
+---
+title: "milestone 4"
+author: "Bernadette Stadler"
+date: "10/10/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(janitor)
+library(dplyr)
+```
+
+```{r read in data, include = FALSE}
+mls_salaries <- read_excel("data/MLS_Salaries.xlsx") %>% clean_names()
+women_squads <- read_excel("data/Womens Squads.xlsx")
+FIFA_results <- read_excel("data/FIFA Womens' World Cup Results.xlsx")
+```
+
+```{r make ggplot}
+mls_salaries %>% 
+  select(season, base_salary, total_compensation) %>% 
+  group_by(season) %>% 
+  summarize(
+    avg_salary = mean(base_salary), 
+    avg_total_comp = mean(total_compensation)
+    ) %>% 
+  ggplot() + geom_line(aes( x = season, y = avg_salary, color = "green")) + geom_line(aes(x = season, y = avg_total_comp, color = "blue"))
+```
