@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(ggplot2)
 library(readxl)
@@ -68,18 +68,19 @@ min_max_data <- mls_salaries %>%
   # clean names because some came through in a weird format 
   
   melt(id = "season") %>%
-  mutate(min_max = ifelse(
-    variable %in% c("min_salary_mls", "min_salary_nwsl"), "Min", "Max")
-    ) %>% 
   mutate(league = ifelse(
     variable %in% c("max_salary_nwsl","min_salary_nwsl"), "NWSL", "MLS")
+  ) %>% 
+  mutate(min_max = ifelse(
+    variable %in% c("max_salary_nwsl","max_salary_mls"), "Max", "Min")
   )
+
 # format the data so that there are separate columns indicating min or max 
 # salary as well as the league so that I later use these variables in my ggplot
 
 ```
 
-```{r make ggplot,  echo = FALSE, warning = FALSE}
+```{r make ggplot, warning = FALSE, message = FALSE}
 
 min_max_data %>% 
   select(season, value, min_max, league) %>% 
@@ -88,9 +89,9 @@ min_max_data %>%
   # when I reformatted the data above 
   
   ggplot() + 
-  geom_smooth(aes(x = season, y = value, color = min_max)) +
+  geom_smooth(aes(x = season, y = value, color = min_max)) + 
   
-  # make the ggplot,
+  # make the ggplot. 
   
   facet_wrap(~league) +
   
@@ -99,13 +100,9 @@ min_max_data %>%
   scale_y_log10(labels = number_format(scale = 1)) +
   
   # scale the y axis. When the y axis is not a logorithmic scale, you basically
-  # can't see any columns other than the MLS maximum salary. I'm still not 100%
-  # sure that this is the best rescaling because it makes the extent of the
-  # salary differences much less striking. However, lots of googling made it
-  # clear that axis breaks are a no-no in ggplot, and I couldn't leave the 
-  # graph as it was, so a logorithmic scale seemed to make the most sense. 
-  # To mitigate some of the non-intuitiveness of the log scale, I changed the
-  # y axis so that values are reported in numbers, not as log funcitons. 
+  # can't see any lines other than the MLS maximum salary. To mitigate some of
+  # the non-intuitiveness of the log scale, I changed the y axis so that values
+  # are reported in numbers, not as log funcitons. 
   
     labs(
     title = "Major League Soccer and National Women's Soccer League Salaries",
