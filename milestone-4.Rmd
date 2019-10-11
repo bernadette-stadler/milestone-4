@@ -11,14 +11,12 @@ library(tidyverse)
 library(ggplot2)
 library(readxl)
 library(janitor)
-library(dplyr)
 library(reshape2)
+library(scales)
 ```
 
 ```{r read in data, include = FALSE}
 mls_salaries <- read_excel("data/MLS_Salaries.xlsx") %>% clean_names()
-women_squads <- read_excel("data/Womens Squads.xlsx")
-FIFA_results <- read_excel("data/FIFA Womens' World Cup Results.xlsx")
 ```
 
 ```{r make ggplot data, include = FALSE}
@@ -38,27 +36,33 @@ min_max_data <- mls_salaries %>%
       nwsl_salaries, by = "season", suffix= c("_mls","_nwsl")
       ) %>% 
   clean_names() %>% 
-  melt(id = season) %>%
+  melt(id = "season") %>%
   mutate(min_or_max = ifelse(
-    variable %in% c("min_salary_mls", "min_salary_nwsl"), "min", "max")
+    variable %in% c("min_salary_mls", "min_salary_nwsl"), "Min", "Max")
+    ) %>% 
+  mutate(league = ifelse(
+    variable %in% c("max_salary_nwsl","min_salary_nwsl"), "NWSL", "MLS")
     )
 ```
 
 ```{r make ggplot,  echo = FALSE, warning = FALSE}
 
-min_max_data %>% 
+min_max_data %>% select(season, value, min_or_max, league) %>% group_by(league) %>%
   ggplot() + 
-  geom_col(aes(x = season, y = max_salary_mls, fill = "max_salary_mls")) +
-  geom_col(aes(x = season, y = min_salary_mls, fill = "min_salary_mls")) + 
-  geom_col(
-    aes(x = season, y = min_salary_nwsl, fill = "min_salary_nwsl")
-    ) + 
-  geom_col(aes(x = season, y = max_salary_nwsl, fill = "max_salary")) + 
-  scale_y_log10() + 
-  labs(
+  geom_col(aes(x = season, y = value, fill = min_or_max), position = "dodge") + 
+  scale_fill_manual(values=c("dodgerblue4","dodgerblue")) +
+  facet_wrap(~league) +
+  scale_y_log10(labels = number_format(scale = 1)) +
+    labs(
     title = "Major League Soccer and National Women's Soccer League Salaries",
     subtitle = "By season, 2013-2018",
-    y = "Salary",
-    x = "Season")
+    y = "Salary (in USD)",
+    x = "Season", 
+    caption = "Data from MLS Player's Association, USA soccer, and The Equalizer.",
+    fill = "") + 
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5), 
+        plot.subtitle = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust =0.5))
 
 ```
