@@ -12,6 +12,7 @@ library(ggplot2)
 library(readxl)
 library(janitor)
 library(dplyr)
+library(reshape2)
 ```
 
 ```{r read in data, include = FALSE}
@@ -23,7 +24,8 @@ FIFA_results <- read_excel("data/FIFA Womens' World Cup Results.xlsx")
 ```{r make ggplot data, include = FALSE}
 season <- c(2013, 2014, 2015, 2016, 2017, 2018)
 
-nwsl_salaries <- tibble(season) %>% mutate(min_salary = c(6000, 6600, 6842, 7200, 15000, 15750)) %>% mutate(max_salary = c(30000, 31500, 37800, 39700, 41700, 44000))
+nwsl_salaries <- tibble(season) %>% 
+  mutate(min_salary = c(6000, 6600, 6842, 7200, 15000, 15750)) %>% mutate(max_salary = c(30000, 31500, 37800, 39700, 41700, 44000))
 
 min_max_data <- mls_salaries %>% 
   select(season, base_salary, total_compensation) %>% 
@@ -33,21 +35,25 @@ min_max_data <- mls_salaries %>%
     min_salary = min(base_salary), 
     max_salary = max(base_salary)
     ) %>% inner_join(
-      nwsl_salaries, by = "season", suffix= c("_mls", "-nwsl")
+      nwsl_salaries, by = "season", suffix= c("_mls","_nwsl")
       ) %>% 
-  clean_names() 
+  clean_names() %>% 
+  melt(id = season) %>%
+  mutate(min_or_max = ifelse(
+    variable %in% c("min_salary_mls", "min_salary_nwsl"), "min", "max")
+    )
 ```
 
 ```{r make ggplot,  echo = FALSE, warning = FALSE}
 
 min_max_data %>% 
   ggplot() + 
-  geom_smooth(aes(x = season, y = max_salary_mls, color = "max_salary_mls")) +
-  geom_smooth(aes(x = season, y = min_salary_mls, color = "min_salary_mls")) + 
-  geom_smooth(
-    aes(x = season, y = min_salary_nwsl, color = "min_salary_nwsl")
+  geom_col(aes(x = season, y = max_salary_mls, fill = "max_salary_mls")) +
+  geom_col(aes(x = season, y = min_salary_mls, fill = "min_salary_mls")) + 
+  geom_col(
+    aes(x = season, y = min_salary_nwsl, fill = "min_salary_nwsl")
     ) + 
-  geom_smooth(aes(x = season, y = max_salary_nwsl, color = "max_salary")) + 
+  geom_col(aes(x = season, y = max_salary_nwsl, fill = "max_salary")) + 
   scale_y_log10() + 
   labs(
     title = "Major League Soccer and National Women's Soccer League Salaries",
