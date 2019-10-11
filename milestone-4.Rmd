@@ -13,6 +13,7 @@ library(readxl)
 library(janitor)
 library(reshape2)
 library(scales)
+library(plotly)
 ```
 
 ```{r read in data, include = FALSE}
@@ -67,12 +68,12 @@ min_max_data <- mls_salaries %>%
   # clean names because some came through in a weird format 
   
   melt(id = "season") %>%
-  mutate(min_or_max = ifelse(
+  mutate(min_max = ifelse(
     variable %in% c("min_salary_mls", "min_salary_nwsl"), "Min", "Max")
     ) %>% 
   mutate(league = ifelse(
     variable %in% c("max_salary_nwsl","min_salary_nwsl"), "NWSL", "MLS")
-    )
+  )
 # format the data so that there are separate columns indicating min or max 
 # salary as well as the league so that I later use these variables in my ggplot
 
@@ -81,20 +82,15 @@ min_max_data <- mls_salaries %>%
 ```{r make ggplot,  echo = FALSE, warning = FALSE}
 
 min_max_data %>% 
-  select(season, value, min_or_max, league) %>%
+  select(season, value, min_max, league) %>% 
   
   # reselect variables of interest since I ended up with one superfluous column
   # when I reformatted the data above 
   
   ggplot() + 
-  geom_col(aes(x = season, y = value, fill = min_or_max), position = "dodge") +
+  geom_smooth(aes(x = season, y = value, color = min_max)) +
   
-  # make the ggplot, setting fill to min_or_max and position to dodge so that 
-  # I get two side-by-side and color-coded columns
-  
-  scale_fill_manual(values=c("dodgerblue4","dodgerblue")) +
-  
-  # choose nicer colors
+  # make the ggplot,
   
   facet_wrap(~league) +
   
