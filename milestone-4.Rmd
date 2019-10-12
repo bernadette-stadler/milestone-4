@@ -111,15 +111,16 @@ min_or_max_data %>%
     x = "Season", 
     caption = "Data from MLS Player's Association, USA soccer, and The Equalizer.") +
   
-  # add title and subtitle, relable where necessary 
+  # make it look pretty
   
   theme_minimal() +
   
-  # make it look pretty 
+  # add title and subtitle, relable where necessary 
   
   theme(plot.title = element_text(hjust = 0.5), 
         plot.subtitle = element_text(hjust = 0.5),
-        plot.caption = element_text(hjust =0.5))
+        plot.caption = element_text(hjust =0.5),
+        axis.text.x = element_text(angle = 35, vjust = 0.5))
 
   # center titles and caption
 ```
